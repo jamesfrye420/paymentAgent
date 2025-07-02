@@ -5,6 +5,7 @@ from enum import Enum
 
 class PaymentStatus(Enum):
     """Payment transaction status enumeration."""
+
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
@@ -16,13 +17,13 @@ class PaymentStatus(Enum):
 
 class ErrorCode(Enum):
     """Error codes for various payment failure scenarios."""
-    
+
     # Network errors
     TIMEOUT = "TIMEOUT"
     CONNECTION_REFUSED = "CONNECTION_REFUSED"
     SSL_HANDSHAKE_FAILED = "SSL_HANDSHAKE_FAILED"
     DNS_RESOLUTION_FAILED = "DNS_RESOLUTION_FAILED"
-    
+
     # Provider-specific errors
     CARD_DECLINED = "CARD_DECLINED"
     INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS"
@@ -32,7 +33,7 @@ class ErrorCode(Enum):
     CURRENCY_NOT_SUPPORTED = "CURRENCY_NOT_SUPPORTED"
     REGION_BLOCKED = "REGION_BLOCKED"
     COMPLIANCE_VIOLATION = "COMPLIANCE_VIOLATION"
-    
+
     # Card network specific errors
     NETWORK_UNAVAILABLE = "NETWORK_UNAVAILABLE"
     NETWORK_TIMEOUT = "NETWORK_TIMEOUT"
@@ -40,13 +41,13 @@ class ErrorCode(Enum):
     INVALID_CARD_NUMBER = "INVALID_CARD_NUMBER"
     EXPIRED_CARD = "EXPIRED_CARD"
     INVALID_CVV = "INVALID_CVV"
-    
+
     # Payment method specific errors
     WALLET_INSUFFICIENT_BALANCE = "WALLET_INSUFFICIENT_BALANCE"
     WALLET_SUSPENDED = "WALLET_SUSPENDED"
     BANK_ACCOUNT_CLOSED = "BANK_ACCOUNT_CLOSED"
     BANK_TRANSFER_LIMIT_EXCEEDED = "BANK_TRANSFER_LIMIT_EXCEEDED"
-    
+
     # System errors
     RATE_LIMITED = "RATE_LIMITED"
     PROVIDER_MAINTENANCE = "PROVIDER_MAINTENANCE"
@@ -56,6 +57,7 @@ class ErrorCode(Enum):
 
 class CircuitBreakerState(Enum):
     """Circuit breaker state enumeration."""
+
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
@@ -63,6 +65,7 @@ class CircuitBreakerState(Enum):
 
 class RoutingStrategy(Enum):
     """Payment routing strategy enumeration."""
+
     HEALTH_BASED = "health_based"
     ROUND_ROBIN = "round_robin"
     FAILOVER = "failover"
@@ -72,6 +75,7 @@ class RoutingStrategy(Enum):
 
 class CardNetwork(Enum):
     """Card network enumeration."""
+
     VISA = "visa"
     MASTERCARD = "mastercard"
     AMEX = "amex"
@@ -83,6 +87,7 @@ class CardNetwork(Enum):
 
 class PaymentMethod(Enum):
     """Payment method enumeration."""
+
     CARD = "card"
     DIGITAL_WALLET = "digital_wallet"
     BANK_TRANSFER = "bank_transfer"
@@ -92,6 +97,7 @@ class PaymentMethod(Enum):
 
 class Currency(Enum):
     """Supported currencies."""
+
     USD = "USD"
     EUR = "EUR"
     GBP = "GBP"
@@ -105,6 +111,7 @@ class Currency(Enum):
 
 class TransactionType(Enum):
     """Transaction type enumeration."""
+
     PAYMENT = "payment"
     REFUND = "refund"
     AUTHORIZATION = "authorization"
@@ -114,6 +121,7 @@ class TransactionType(Enum):
 
 class RiskLevel(Enum):
     """Risk assessment levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -122,6 +130,7 @@ class RiskLevel(Enum):
 
 class Region(Enum):
     """Geographic regions."""
+
     NORTH_AMERICA = "north_america"
     EUROPE = "europe"
     ASIA_PACIFIC = "asia_pacific"

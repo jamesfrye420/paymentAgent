@@ -9,7 +9,7 @@ from .razorpay_provider import RazorpayProvider
 __all__ = [
     "PaymentProvider",
     "StripeProvider",
-    "AdyenProvider", 
+    "AdyenProvider",
     "PayPalProvider",
-    "RazorpayProvider"
+    "RazorpayProvider",
 ]
