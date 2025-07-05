@@ -12,12 +12,6 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from unittest import result
 import uuid
-from payment_gateway.providers import (
-    StripeProvider,
-    AdyenProvider,
-    PayPalProvider,
-    RazorpayProvider,
-)
 
 # Add faker for realistic data generation
 try:
@@ -35,10 +29,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 from payment_gateway.gateway.payment_gateway import PaymentGateway
 from payment_gateway.core.enums import (
     RoutingStrategy,
-    CardNetwork,
-    PaymentMethod,
-    Currency,
-    Region,
     RiskLevel,
     TransactionType,
 )
@@ -47,7 +37,6 @@ from payment_gateway.core.models import (
     CustomerInfo,
     Transaction as TransactionModel,
 )
-from payment_gateway.logging.structured_logger import StructuredLogger
 
 # Try relative imports first (when run as module)
 from data.customer_generator import CustomerGenerator
@@ -87,11 +76,6 @@ class RealisticPaymentSimulator:
 
         # Initialize gateway and logger
         self.gateway = PaymentGateway(routing_strategy=RoutingStrategy.COST_OPTIMIZED)
-        try:
-            self.logger = StructuredLogger()
-        except Exception as e:
-            print(f"Warning: Could not initialize structured logger: {e}")
-            self.logger = None
 
         # Simulation control
         self.running = False
@@ -721,8 +705,6 @@ class RealisticPaymentSimulator:
         order_id: str,
     ):
         """Log structured event for LLM training with risk scoring."""
-        if not self.logger:
-            return
 
         try:
             # Split the result into separate objects for each route history entry
@@ -730,7 +712,7 @@ class RealisticPaymentSimulator:
             print("result", split_results)
 
             # Write each split result to the file
-            with open(self._log_filename, "a") as f:
+            with open(f"logs/{self._log_filename}", "a") as f:
                 for split_result in split_results:
                     f.write(json.dumps(split_result, default=str) + "\n")
 

@@ -10,15 +10,16 @@ from datetime import datetime
 # Add the current directory and parent directory to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
-src_dir = os.path.join(parent_dir, 'src')
+src_dir = os.path.join(parent_dir, "src")
 
 sys.path.insert(0, current_dir)  # Add simulation directory
-sys.path.insert(0, parent_dir)   # Add parent directory  
-sys.path.insert(0, src_dir)      # Add src directory
+sys.path.insert(0, parent_dir)  # Add parent directory
+sys.path.insert(0, src_dir)  # Add src directory
 
 # Now import using relative imports from current directory
 from core.simulator import RealisticPaymentSimulator
 from utils.signal_handlers import setup_signal_handlers
+
 
 def run_main_simulation():
     """Run the main continuous simulation."""
@@ -33,44 +34,49 @@ def run_main_simulation():
     print("✅ Comprehensive logging for LLM training")
     print("✅ Variable load patterns based on time")
     print("=" * 60)
-    
+
     try:
         # Initialize simulator
         simulator = RealisticPaymentSimulator()
-        
+
         # Setup signal handlers
         setup_signal_handlers(simulator)
-        
+
         # Add observer for real-time monitoring
         def payment_observer(event):
             # Only log critical events to avoid spam
-            if event.event_type in ['payment_final_failure', 'circuit_breaker_event']:
+            if event.event_type in ["payment_final_failure", "circuit_breaker_event"]:
                 timestamp = event.timestamp.strftime("%H:%M:%S")
-                print(f"🚨 [{timestamp}] {event.event_type}: {event.transaction.id} via {event.provider}")
-        
+                print(
+                    f"🚨 [{timestamp}] {event.event_type}: {event.transaction.id} via {event.provider}"
+                )
+
         simulator.gateway.monitor.add_observer(payment_observer)
-        
+
         # Show initial system status
         print(f"\n🏥 Initial Provider Health:")
         health_data = simulator.gateway.get_provider_health()
         for provider, health in health_data.items():
-            status = "🟢" if health['is_healthy'] else "🔴"
+            status = "🟢" if health["is_healthy"] else "🔴"
             print(f"   {status} {provider}: Ready")
-        
+
         # Start simulation
         simulator.run_simulation()
-        
+
     except ImportError as e:
         print(f"❌ Missing dependency: {e}")
         print("💡 Install required packages:")
         print("   pip install faker")
-        print("\n🔧 If you're getting import errors, make sure you're running from the parent directory:")
+        print(
+            "\n🔧 If you're getting import errors, make sure you're running from the parent directory:"
+        )
         print("   cd ..")
         print("   python -m simulation.main")
         sys.exit(1)
     except Exception as e:
         print(f"💥 Simulator initialization error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 
@@ -78,7 +84,7 @@ def run_main_simulation():
 def run_quick_test():
     """Run a quick 30-second test simulation."""
     print("🏃‍♂️ Quick Test Mode (30 seconds)")
-    
+
     try:
         simulator = RealisticPaymentSimulator()
         simulator.run_quick_test(30)
@@ -89,7 +95,7 @@ def run_quick_test():
 def run_high_failure_test():
     """Run high failure rate simulation for testing recovery agent."""
     print("🔥 High Failure Mode")
-    
+
     try:
         simulator = RealisticPaymentSimulator()
         simulator.run_high_failure_simulation()
@@ -100,7 +106,7 @@ def run_high_failure_test():
 def run_stress_test():
     """Run a high-volume stress test."""
     print("⚡ Stress Test Mode")
-    
+
     try:
         simulator = RealisticPaymentSimulator()
         simulator.run_stress_test(200)
@@ -111,7 +117,7 @@ def run_stress_test():
 def run_business_hours_simulation():
     """Simulate traffic patterns throughout a business day."""
     print("🏢 Business Hours Simulation")
-    
+
     try:
         simulator = RealisticPaymentSimulator()
         simulator.run_business_hours_simulation()
@@ -140,7 +146,7 @@ def main():
     """Main CLI entry point."""
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
-        
+
         if mode == "quick":
             run_quick_test()
         elif mode == "stress":
