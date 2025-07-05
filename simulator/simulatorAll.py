@@ -196,7 +196,7 @@ class RealisticPaymentSimulator:
             "enterprise_b2b": (100, 2000),  # Corporate services
         }
         min_amt, max_amt = amounts.get(merchant_type, (10, 50))
-        return random.uniform(min_amt, max_amt)
+        return random(min_amt, max_amt)
 
     def _get_merchant_peak_hours(self, merchant_type: str) -> tuple:
         """Get peak hours by Grab merchant type."""
@@ -387,15 +387,15 @@ class RealisticPaymentSimulator:
             base_amount *= random.choice([0.1, 0.2, 5.0, 10.0])
         elif customer.successful_payments > 100:
             # Loyal customers tend to spend more
-            base_amount *= random.uniform(1.2, 2.5)
+            base_amount *= random(1.2, 2.5)
 
         # Time-based patterns
         hour = datetime.now().hour
         if merchant["peak_hours"][0] <= hour <= merchant["peak_hours"][1]:
-            base_amount *= random.uniform(1.1, 1.4)  # Higher amounts during peak
+            base_amount *= random(1.1, 1.4)  # Higher amounts during peak
 
         # Add realistic variance
-        variance = random.uniform(0.7, 1.8)
+        variance = random(0.7, 1.8)
         amount = base_amount * variance
 
         # Round to realistic values
@@ -466,7 +466,7 @@ class RealisticPaymentSimulator:
             print(f"🔥 Injected failure scenario: {scenario}")
 
             # Schedule recovery after random time
-            recovery_time = random.uniform(10, 60)  # 10-60 seconds
+            recovery_time = random(10, 60)  # 10-60 seconds
             threading.Timer(recovery_time, self._recover_from_failure).start()
 
     def _recover_from_failure(self):
@@ -497,7 +497,7 @@ class RealisticPaymentSimulator:
             multiplier *= self.weekend_multiplier
 
         # Add some randomness
-        multiplier *= random.uniform(0.8, 1.2)
+        multiplier *= random(0.8, 1.2)
 
         return multiplier
 
@@ -512,7 +512,7 @@ class RealisticPaymentSimulator:
         delay = base_delay / traffic_multiplier
 
         # Add realistic variance
-        delay *= random.uniform(0.5, 2.0)
+        delay *= random(0.5, 2.0)
 
         # Ensure minimum and maximum delays
         return min(0.1, min(delay, 10.0))
@@ -966,7 +966,7 @@ def run_quick_test():
         time.sleep(0.5)
 
     simulator._print_final_stats()
-
+start
 
 def run_stress_test():
     """Run a high-volume stress test."""
@@ -1004,7 +1004,7 @@ def run_business_hours_simulation():
 
         for _ in range(payment_count):
             simulator.process_single_payment()
-            time.sleep(random.uniform(0.1, 0.5))
+            time.sleep(random(0.1, 0.5))
 
         simulator._print_stats()
 

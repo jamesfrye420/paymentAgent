@@ -170,7 +170,7 @@ def demo_network_routing():
 
         # Create transaction
         transaction_data = {
-            "amount": random.uniform(50, 500),
+            "amount": random(50, 500),
             "currency": Currency.USD,
             "payment_instrument": instrument,
             "customer_info": customer,
@@ -239,7 +239,7 @@ def demo_payment_method_handling():
 
         try:
             result = gateway.process_payment(
-                amount=random.uniform(25, 1000),
+                amount=random(25, 1000),
                 currency=random.choice([Currency.USD, Currency.SGD, Currency.EUR]),
                 payment_instrument=instrument,
                 customer_info=customer,
@@ -318,7 +318,7 @@ def demo_regional_optimization():
                     "regional_optimization": True,
                     "customer_region": region.value,
                     "provider_regional_score": 0.85,
-                    "network_latency": random.uniform(100, 400),
+                    "network_latency": random(100, 400),
                 },
                 selected_provider=transaction["provider"],
                 alternatives=["alternative_provider_1", "alternative_provider_2"],
@@ -356,7 +356,7 @@ def demo_failure_analysis_with_context():
         for i in range(3):
             customer = random.choice(customers)
             instrument = random.choice(instruments)
-            amount = random.uniform(100, 2000)
+            amount = random(100, 2000)
 
             result = gateway.process_payment(
                 amount=amount,

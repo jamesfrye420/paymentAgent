@@ -172,7 +172,7 @@ def demo_provider_health():
     for i in range(20):
         try:
             gateway.process_payment(
-                amount=random.uniform(10, 1000),
+                amount=random(10, 1000),
                 currency=random.choice(["USD", "EUR", "SGD"]),
             )
         except:
