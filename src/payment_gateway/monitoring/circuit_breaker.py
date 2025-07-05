@@ -46,6 +46,7 @@ class CircuitBreaker:
         Raises:
             CircuitBreakerError: When circuit breaker is open
         """
+    
         if self.state == CircuitBreakerState.OPEN:
             if self._should_attempt_reset():
                 self.state = CircuitBreakerState.HALF_OPEN

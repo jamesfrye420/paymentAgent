@@ -33,3 +33,8 @@ htmlcov/
 .mypy_cache/
 .DS_Store
 *logs*.json
+*logs*.jsonl
+*simulation*.json
+realistic_events.jsonl
+myenv
+.vscode
