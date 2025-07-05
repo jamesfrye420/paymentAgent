@@ -535,20 +535,19 @@ Choose the most appropriate tool and parameters to answer the user's query. Alwa
 # Usage example
 def main():
     """Example usage of the ReAct agent"""
+
+    if len(sys.argv) < 3:
+        print("Usage: python react_agent.py <file_path> <query>")
+        sys.exit(1)
+
+    file_path = sys.argv[1]  # Get the file path from the system arguments
+    query = sys.argv[2]
     agent = RootCauseReActAgent()
 
     # Example queries
-    queries = [
-        "what did transaction id d6d826e0-d57f-462c-9493-d335f9573e0d fail for the first time?",
-    ]
 
-    for query in queries:
-        print(f"\n{'='*60}")
-        print(f"Query: {query}")
-        print(f"{'='*60}")
-
-        result = agent.analyze(query)
-        print(result)
+    result = agent.analyze(query, file_path)
+    print(result)
 
 
 if __name__ == "__main__":
