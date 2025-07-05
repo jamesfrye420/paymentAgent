@@ -2,12 +2,30 @@ from river import compose
 from river import preprocessing
 from river import tree
 from enum import IntEnum
+import pickle
+import os
+
+TRAIN_CALL_COUNT = 0
+SAVE_INTERVAL = 100  # Save model every 100 learn_one() calls
+MODEL_SAVE_PATH = "model_checkpoint.pkl"
+
+def load_model(path=MODEL_SAVE_PATH):
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as f:
+                print(f"[Model Loaded] Restoring from: {path}")
+                return pickle.load(f)
+        except Exception as e:
+            print(f"[Error Loading Model] {e}")
+    return None 
 
 # Initialize model and metric
-model = compose.Pipeline(
+default_model = compose.Pipeline(
     preprocessing.StandardScaler(),
     tree.HoeffdingTreeClassifier()
 )
+model = load_model() or default_model
+
 """
 Hello @Avik @Arijit
 Please test this model with HoeffdingTreeClassifier, AdaptiveRandomForestClassifier, LogisticRegression, GaussianNB, and KNNClassifier
@@ -100,6 +118,19 @@ def handle_history(features: dict, true_label: int):
     # If true label is known, update the model and metrics
     model = model.learn_one(features, true_label)
 
+    if TRAIN_CALL_COUNT % SAVE_INTERVAL == 0:
+        save_model(model)
+
+
+def save_model(model, path=MODEL_SAVE_PATH):
+    try:
+        with open(path, "wb") as f:
+            pickle.dump(model, f)
+        print(f"[Model Saved] Training checkpoint written to: {path}")
+    except Exception as e:
+        print(f"[Error Saving Model] {e}")
+
+ # fallback to initial model
 
 
 
