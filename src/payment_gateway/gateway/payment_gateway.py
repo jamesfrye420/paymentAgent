@@ -30,7 +30,7 @@ from ..providers.paypal_provider import PayPalProvider
 from ..providers.razorpay_provider import RazorpayProvider
 from ..monitoring.monitor import PaymentMonitor
 from ..monitoring.circuit_breaker import CircuitBreaker
-
+from demo_model import use_bedrock_deepseek
 
 class PaymentGateway:
     """
@@ -171,7 +171,7 @@ class PaymentGateway:
             PaymentEvent("payment_initiated", transaction, provider_name)
         )
 
-        return self._attempt_payment(transaction)
+        return self._attempt_payment(transaction, payment_instrument, customer_info) 
 
     def _select_optimal_provider(
         self, transaction: Optional[Transaction] = None
@@ -434,7 +434,7 @@ class PaymentGateway:
             "error": "Payment failed after all retry attempts",
         }
 
-    def _attempt_payment(self, transaction: Transaction) -> Dict[str, Any]:
+    def _attempt_payment(self, transaction: Transaction, payment_instrument: PaymentInstrument, customer_info: CustomerInfo) -> Dict[str, Any]:
         """Attempt payment processing with retry logic."""
         for attempt in range(self.retry_config.max_attempts):
             transaction.attempts = attempt + 1
@@ -511,7 +511,7 @@ class PaymentGateway:
                 )
                 self.monitor.record_metric("payment_latency", processing_time)
 
-                return {"success": True, "transaction": transaction.to_dict()}
+                # return {"success": True, "transaction": transaction.to_dict()}
 
             except (ProviderError, CircuitBreakerError) as e:
                 # Generate realistic failure codes
@@ -612,10 +612,15 @@ class PaymentGateway:
             PaymentEvent("payment_final_failure", transaction, transaction.provider)
         )
 
+        llm_response = use_bedrock_deepseek(
+            f"""Transaction: {transaction.to_dict()}, 
+            Payment Instrument: {transaction.payment_instrument.to_dict()}, 
+            Customer Info: {transaction.customer_info.to_dict()}. 
+            """
+        )
         return {
-            "success": False,
+            "success": llm_response[0]["text"].strip() == "Success",
             "transaction": transaction.to_dict(),
-            "error": "Payment failed after all retry attempts",
         }
 
     def _switch_provider(self, transaction: Transaction):
@@ -669,32 +674,32 @@ class PaymentGateway:
 
         return self.transactions[transaction_id].to_dict()
 
-    def retry_payment(self, transaction_id: str) -> Dict[str, Any]:
-        """
-        Retry a failed payment.
+    # def retry_payment(self, transaction_id: str) -> Dict[str, Any]:
+    #     """
+    #     Retry a failed payment.
 
-        Args:
-            transaction_id: Transaction identifier
+    #     Args:
+    #         transaction_id: Transaction identifier
 
-        Returns:
-            Retry result
+    #     Returns:
+    #         Retry result
 
-        Raises:
-            TransactionNotFoundError: If transaction doesn't exist
-        """
-        if transaction_id not in self.transactions:
-            raise TransactionNotFoundError(transaction_id)
+    #     Raises:
+    #         TransactionNotFoundError: If transaction doesn't exist
+    #     """
+    #     if transaction_id not in self.transactions:
+    #         raise TransactionNotFoundError(transaction_id)
 
-        transaction = self.transactions[transaction_id]
+    #     transaction = self.transactions[transaction_id]
 
-        if transaction.status == PaymentStatus.SUCCESS:
-            return {"success": False, "error": "Transaction already successful"}
+    #     if transaction.status == PaymentStatus.SUCCESS:
+    #         return {"success": False, "error": "Transaction already successful"}
 
-        # Reset transaction for retry
-        transaction.status = PaymentStatus.RETRYING
-        transaction.provider = self._select_optimal_provider()
+    #     # Reset transaction for retry
+    #     transaction.status = PaymentStatus.RETRYING
+    #     transaction.provider = self._select_optimal_provider()
 
-        return self._attempt_payment(transaction)
+    #     return self._attempt_payment(transaction)
 
     def get_provider_health(self) -> Dict[str, Dict[str, Any]]:
         """Get health status of all providers."""

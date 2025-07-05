@@ -7,3 +7,7 @@ river==0.22.0
 scipy==1.15.3
 six==1.17.0
 tzdata==2025.2
+boto3==1.24.12
+langchain==0.0.145
+langchain_aws==0.2.27
+ollama==0.0.4

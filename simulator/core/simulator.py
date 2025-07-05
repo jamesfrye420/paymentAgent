@@ -709,7 +709,7 @@ class RealisticPaymentSimulator:
         try:
             # Split the result into separate objects for each route history entry
             split_results = self._split_route_history(result)
-            print("result", split_results)
+            # print("result", split_results)
 
             # Write each split result to the file
             with open(f"logs/{self._log_filename}", "a") as f:
