@@ -14,7 +14,7 @@ from ..core.models import (
     Route,
     RetryConfig,
     CircuitBreakerConfig,
-    RoutingDecision
+    RoutingDecision,
 )
 from ..core.enums import PaymentStatus, RoutingStrategy, TransactionType
 from ..core.exceptions import (
@@ -30,7 +30,7 @@ from ..providers.paypal_provider import PayPalProvider
 from ..providers.razorpay_provider import RazorpayProvider
 from ..monitoring.monitor import PaymentMonitor
 from ..monitoring.circuit_breaker import CircuitBreaker
-
+from demo_model import use_bedrock_deepseek
 
 class PaymentGateway:
     """
@@ -171,7 +171,7 @@ class PaymentGateway:
             PaymentEvent("payment_initiated", transaction, provider_name)
         )
 
-        return self._attempt_payment(transaction)
+        return self._attempt_payment(transaction, payment_instrument, customer_info) 
 
     def _select_optimal_provider(
         self, transaction: Optional[Transaction] = None
@@ -334,7 +334,7 @@ class PaymentGateway:
 
         return "stripe"  # ultimate fallback
 
-    # def _attempt_payment(self, transaction: Transaction) -> Dict[str, Any]:
+        # def _attempt_payment(self, transaction: Transaction) -> Dict[str, Any]:
         """Attempt payment processing with retry logic."""
         for attempt in range(self.retry_config.max_attempts):
             transaction.attempts = attempt + 1
@@ -434,8 +434,7 @@ class PaymentGateway:
             "error": "Payment failed after all retry attempts",
         }
 
-
-    def _attempt_payment(self, transaction: Transaction) -> Dict[str, Any]:
+    def _attempt_payment(self, transaction: Transaction, payment_instrument: PaymentInstrument, customer_info: CustomerInfo) -> Dict[str, Any]:
         """Attempt payment processing with retry logic."""
         for attempt in range(self.retry_config.max_attempts):
             transaction.attempts = attempt + 1
@@ -450,39 +449,26 @@ class PaymentGateway:
                 result = circuit_breaker.call(provider.process_payment, transaction)
                 processing_time = time.time() - start_time
 
-
                 # Generate realistic provider response codes
-                provider_response_code = result.get('provider_response_code', 'SUCCESS')
-                network_response_code = result.get('network_response_code', '00')
+                provider_response_code = result.get("provider_response_code", "SUCCESS")
+                network_response_code = result.get("network_response_code", "00")
                 # Add network latency simulation
                 network_latency = random.uniform(50, 300)  # 50-300ms typical range
-                
-                rd = RoutingDecision(
-                        selected_provider=transaction.provider,
-                        strategy_used=self.routing_strategy.value,
-                        decision_factors={
-                            'provider_health': provider.get_health().success_rate,
-                            'estimated_latency': provider.get_health().avg_latency,
-                            'circuit_breaker_state': circuit_breaker.get_state().value
-                        },
-                        alternative_providers=[p for p in self.providers.keys() if p != transaction.provider],
-                        confidence_score=provider.get_health().success_rate,  # or whatever metric you prefer
-                        timestamp=datetime.now()
-                    )
 
                 rd = RoutingDecision(
                     selected_provider=transaction.provider,
                     strategy_used=self.routing_strategy.value,
                     decision_factors={
-                        'provider_health': provider.get_health().success_rate,
-                        'estimated_latency': provider.get_health().avg_latency,
-                        'circuit_breaker_state': circuit_breaker.get_state().value
+                        "provider_health": provider.get_health().success_rate,
+                        "estimated_latency": provider.get_health().avg_latency,
+                        "circuit_breaker_state": circuit_breaker.get_state().value,
                     },
-                    alternative_providers=[p for p in self.providers.keys() if p != transaction.provider],
+                    alternative_providers=[
+                        p for p in self.providers.keys() if p != transaction.provider
+                    ],
                     confidence_score=provider.get_health().success_rate,  # or whatever metric you prefer
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 )
-
 
                 # Record successful route with complete data
                 route = Route(
@@ -492,23 +478,29 @@ class PaymentGateway:
                     timestamp=datetime.now(),
                     processing_time=processing_time,
                     provider_response_code=provider_response_code,
-                    provider_message=result.get('provider_message', 'Transaction approved'),
+                    provider_message=result.get(
+                        "provider_message", "Transaction approved"
+                    ),
                     network_response_code=network_response_code,
                     network_latency=network_latency,
                     retry_eligible=True,
-                    routing_decision=rd
+                    routing_decision=rd,
                 )
                 transaction.route_history.append(route)
 
                 # Update transaction
                 transaction.status = PaymentStatus.SUCCESS
                 transaction.metadata.update(result)
-                transaction.metadata.update({
-                    'provider_transaction_id': f"{transaction.provider}_{uuid.uuid4().hex[:8]}",
-                    'processing_fee': round(transaction.amount * 0.029, 2),  # Realistic processing fee
-                    'network_response_code': network_response_code,
-                    'provider_response_code': provider_response_code
-                })
+                transaction.metadata.update(
+                    {
+                        "provider_transaction_id": f"{transaction.provider}_{uuid.uuid4().hex[:8]}",
+                        "processing_fee": round(
+                            transaction.amount * 0.029, 2
+                        ),  # Realistic processing fee
+                        "network_response_code": network_response_code,
+                        "provider_response_code": provider_response_code,
+                    }
+                )
 
                 # Emit success event and record metrics
                 self.monitor.emit_event(
@@ -517,39 +509,40 @@ class PaymentGateway:
                 self.monitor.record_metric(
                     "payment_success", 1, {"provider": transaction.provider}
                 )
-                self.monitor.record_metric(
-                    "payment_latency", processing_time
-                )
-                
+                self.monitor.record_metric("payment_latency", processing_time)
 
-                return {"success": True, "transaction": transaction.to_dict()}
+                # return {"success": True, "transaction": transaction.to_dict()}
 
             except (ProviderError, CircuitBreakerError) as e:
                 # Generate realistic failure codes
                 failure_codes = {
-                    'TIMEOUT': ('TIMEOUT', '91'),
-                    'DECLINED': ('DECLINED', '05'),
-                    'INSUFFICIENT_FUNDS': ('INSUFFICIENT_FUNDS', '51'),
-                    'INVALID_CARD': ('INVALID_CARD', '14'),
-                    'EXPIRED_CARD': ('EXPIRED_CARD', '54')
+                    "TIMEOUT": ("TIMEOUT", "91"),
+                    "DECLINED": ("DECLINED", "05"),
+                    "INSUFFICIENT_FUNDS": ("INSUFFICIENT_FUNDS", "51"),
+                    "INVALID_CARD": ("INVALID_CARD", "14"),
+                    "EXPIRED_CARD": ("EXPIRED_CARD", "54"),
                 }
-                
-                error_type = str(e).split(':')[0] if ':' in str(e) else 'UNKNOWN'
-                provider_code, network_code = failure_codes.get(error_type, ('ERROR', '96'))
+
+                error_type = str(e).split(":")[0] if ":" in str(e) else "UNKNOWN"
+                provider_code, network_code = failure_codes.get(
+                    error_type, ("ERROR", "96")
+                )
 
                 d_fail = RoutingDecision(
-                        selected_provider=transaction.provider,
-                        strategy_used=self.routing_strategy.value,
-                        decision_factors={
-                            'failure_reason': str(e),
-                            'provider_health': provider.get_health().success_rate,
-                            'circuit_breaker_state': circuit_breaker.get_state().value
-                        },
-                        alternative_providers=[p for p in self.providers.keys() if p != transaction.provider],
-                        confidence_score=0.0,  # you could compute a failure score or leave at 0
-                        timestamp=datetime.now()
-                    )
-                
+                    selected_provider=transaction.provider,
+                    strategy_used=self.routing_strategy.value,
+                    decision_factors={
+                        "failure_reason": str(e),
+                        "provider_health": provider.get_health().success_rate,
+                        "circuit_breaker_state": circuit_breaker.get_state().value,
+                    },
+                    alternative_providers=[
+                        p for p in self.providers.keys() if p != transaction.provider
+                    ],
+                    confidence_score=0.0,  # you could compute a failure score or leave at 0
+                    timestamp=datetime.now(),
+                )
+
                 # Record failed route with complete data
                 route = Route(
                     provider=transaction.provider,
@@ -561,9 +554,11 @@ class PaymentGateway:
                     provider_response_code=provider_code,
                     provider_message=str(e),
                     network_response_code=network_code,
-                    network_latency=random.uniform(100, 1000),  # Higher latency for failures
+                    network_latency=random.uniform(
+                        100, 1000
+                    ),  # Higher latency for failures
                     retry_eligible=True,
-                    routing_decision=d_fail
+                    routing_decision=d_fail,
                 )
                 transaction.route_history.append(route)
 
@@ -601,7 +596,7 @@ class PaymentGateway:
                     network_response_code="96",
                     network_latency=None,
                     retry_eligible=False,
-                    routing_decision=None
+                    routing_decision=None,
                 )
                 transaction.route_history.append(route)
 
@@ -617,10 +612,15 @@ class PaymentGateway:
             PaymentEvent("payment_final_failure", transaction, transaction.provider)
         )
 
+        llm_response = use_bedrock_deepseek(
+            f"""Transaction: {transaction.to_dict()}, 
+            Payment Instrument: {transaction.payment_instrument.to_dict()}, 
+            Customer Info: {transaction.customer_info.to_dict()}. 
+            """
+        )
         return {
-            "success": False,
+            "success": llm_response[0]["text"].strip() == "Success",
             "transaction": transaction.to_dict(),
-            "error": "Payment failed after all retry attempts",
         }
 
     def _switch_provider(self, transaction: Transaction):
@@ -674,32 +674,32 @@ class PaymentGateway:
 
         return self.transactions[transaction_id].to_dict()
 
-    def retry_payment(self, transaction_id: str) -> Dict[str, Any]:
-        """
-        Retry a failed payment.
+    # def retry_payment(self, transaction_id: str) -> Dict[str, Any]:
+    #     """
+    #     Retry a failed payment.
 
-        Args:
-            transaction_id: Transaction identifier
+    #     Args:
+    #         transaction_id: Transaction identifier
 
-        Returns:
-            Retry result
+    #     Returns:
+    #         Retry result
 
-        Raises:
-            TransactionNotFoundError: If transaction doesn't exist
-        """
-        if transaction_id not in self.transactions:
-            raise TransactionNotFoundError(transaction_id)
+    #     Raises:
+    #         TransactionNotFoundError: If transaction doesn't exist
+    #     """
+    #     if transaction_id not in self.transactions:
+    #         raise TransactionNotFoundError(transaction_id)
 
-        transaction = self.transactions[transaction_id]
+    #     transaction = self.transactions[transaction_id]
 
-        if transaction.status == PaymentStatus.SUCCESS:
-            return {"success": False, "error": "Transaction already successful"}
+    #     if transaction.status == PaymentStatus.SUCCESS:
+    #         return {"success": False, "error": "Transaction already successful"}
 
-        # Reset transaction for retry
-        transaction.status = PaymentStatus.RETRYING
-        transaction.provider = self._select_optimal_provider()
+    #     # Reset transaction for retry
+    #     transaction.status = PaymentStatus.RETRYING
+    #     transaction.provider = self._select_optimal_provider()
 
-        return self._attempt_payment(transaction)
+    #     return self._attempt_payment(transaction)
 
     def get_provider_health(self) -> Dict[str, Dict[str, Any]]:
         """Get health status of all providers."""

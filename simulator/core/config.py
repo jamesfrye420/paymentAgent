@@ -19,7 +19,7 @@ class SimulationConfig:
     weekend_multiplier: float = 100.00  # 60% traffic on weekends
     
     # Failure injection
-    failure_injection_probability: float = 1.0 
+    failure_injection_probability: float = 0.6 
     failure_recovery_time_range: Tuple[float, float] = (10.0, 60.0)  # 10-60 seconds
     
     # Statistics
